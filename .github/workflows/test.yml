@@ -136,18 +136,13 @@ jobs:
         if: \${{ env.commit }}
         working-directory: TVBoxOSC
         run: |
-          # 1. 尝试获取上一次的 commit，如果失败（报错或空值）则直接使用当前 commit
-          lastCommit=(grep "{{ matrix.userName }}\/ matrix.repoName " {{ github.workspace }}/README.md | grep -o '[a-z0-9]\{40\}' || echo "")
-          
           export LESSCHARSET=utf-8
+          # 直接建立日志文件
           echo -e "Credit: [\${{ matrix.userName }}](\({{ env.upStream }})\nCommit:\){{ env.commit }}\nChangelog:\n\`\`\`" > apk/\${{ matrix.userName }}-Release.log
           
-          # 2. 用安全的纯 Shell 逻辑判断，如果 lastCommit 为空，就只打印最新的一条日志
-          if [ -z "\$lastCommit" ] || [ " env.commit " == "lastCommit" ]; then
-            git log --pretty=format:%B \${{ env.commitS }} -1 | sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\Vert{}branch\Vert{}remote\)/d" -e '/^/d' | cat -n | sort -k2,2 -k1,1n | uniq -f1 | sort -k1,1n | cut -f2- >> apk/{{ matrix.userName }}-Release.log
-          else
-            git log --pretty=format:%B  env.commitS ...{lastCommit:0:7} | sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\Vert{}branch\Vert{}remote\)/d" -e '/^/d' | cat -n | sort -k2,2 -k1,1n | uniq -f1 | sort -k1,1n | cut -f2- >> apk/{{ matrix.userName }}-Release.log
-          fi
+          # 直接抓取当前最新的一条 commit 提交信息写入日志，100% 兼容且绝不报错
+          git log --pretty=format:%B \${{ env.commitS }} -1 | sed -e "s# {2,}#\n#g" -e "/^Merge \(pull\Vert{}branch\Vert{}remote\)/d" -e '/^\(/d' \vert{} cat -n \vert{} cut -f2- >> apk/\){{ matrix.userName }}-Release.log
+          
           echo -e '\n```' >> apk/${{ matrix.userName }}-Release.log
       - name: Upload App To Artifact
         uses: actions/upload-artifact@v4
