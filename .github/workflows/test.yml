@@ -136,13 +136,16 @@ jobs:
         if: ${{ env.commit }}
         working-directory: TVBoxOSC
         run: |
-          lastCommit=$(grep "${{ matrix.userName }}\/${{ matrix.repoName }}" ${{ github.workspace }}/README.md |grep -o '[a-z0-9]\{40\}')
+          # 加上 || true 防止 grep 找不到内容时崩溃报错
+          lastCommit=(grep "{{ matrix.userName }}\/ matrix.repoName " {{ github.workspace }}/README.md |grep -o '[a-z0-9]\{40\}' || echo "")
           export LESSCHARSET=utf-8
-          echo -e "Credit: [${{ matrix.userName }}](${{ env.upStream }})\nCommit: ${{ env.commit }}\nChangelog:\n\`\`\`" > apk/${{ matrix.userName }}-Release.log
-          if [ "${{ env.commit }}" == "${lastCommit}" ]; then
-            git log --pretty=format:%B ${{ env.commitS }} -1 |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- >> apk/${{ matrix.userName }}-Release.log
+          echo -e "Credit: [\${{ matrix.userName }}](\({{ env.upStream }})\nCommit:\){{ env.commit }}\nChangelog:\n\`\`\`" > apk/\${{ matrix.userName }}-Release.log
+          
+          # 如果是第一次编译，lastCommit 为空，则直接打印当前 commit 的日志
+          if [ -z "\${lastCommit}" ] || [ " env.commit " == "{lastCommit}" ]; then
+            git log --pretty=format:%B \${{{ env.commitS }}} -1 |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\Vert{}branch\Vert{}remote\)/d" -e '/^/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- >> apk/{{ matrix.userName }}-Release.log
           else
-            git log --pretty=format:%B ${{ env.commitS }}...${lastCommit:0:7} |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\|branch\|remote\)/d" -e '/^$/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- >> apk/${{ matrix.userName }}-Release.log
+            git log --pretty=format:%B  env.commitS ...{lastCommit:0:7} |sed -e "s# \{2,\}#\n#g" -e "/^Merge \(pull\Vert{}branch\Vert{}remote\)/d" -e '/^/d' |cat -n |sort -k2,2 -k1,1n |uniq -f1 |sort -k1,1n |cut -f2- >> apk/{{ matrix.userName }}-Release.log
           fi
           echo -e '\n```' >> apk/${{ matrix.userName }}-Release.log
       - name: Upload App To Artifact
