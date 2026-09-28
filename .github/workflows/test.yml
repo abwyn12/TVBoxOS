@@ -69,6 +69,8 @@ jobs:
           else
             sed -i "/jitpack.io/a\        maven { url 'https://o0halflife0o.github.io/crosswalk/releases/crosswalk/android/maven2' }" build.gradle
           fi
+          echo '强行修正 pyramid 模块中写死的 Windows Python 路径'
+            sed -i 's|D:/Programs/Python/Python38/python.exe|python3|g' pyramid/build.gradle
       - name: Compress Source Code
         if: ${{ env.commit }}
         working-directory: TVBoxOSC
