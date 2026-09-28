@@ -133,7 +133,7 @@ jobs:
           done
           mv sourceCode-${{ env.commitS }}.* apk/
       - name: Release Note
-        if: ${{ env.commit }}
+        if: \${{ env.commit }}
         working-directory: TVBoxOSC
         run: |
           # 加上 || true 防止 grep 找不到内容时崩溃报错
