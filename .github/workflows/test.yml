@@ -140,8 +140,8 @@ jobs:
           # 直接建立日志文件
           echo -e "Credit: [\${{ matrix.userName }}](\({{ env.upStream }})\nCommit:\){{ env.commit }}\nChangelog:\n\`\`\`" > apk/\${{ matrix.userName }}-Release.log
           
-          # 直接抓取当前最新的一条 commit 提交信息写入日志，100% 兼容且绝不报错
-          git log --pretty=format:%B \${{ env.commitS }} -1 | sed -e "s# {2,}#\n#g" -e "/^Merge \(pull\Vert{}branch\Vert{}remote\)/d" -e '/^\(/d' \vert{} cat -n \vert{} cut -f2- >> apk/\){{ matrix.userName }}-Release.log
+          # 抓取当前最新的一条 commit 提交信息写入日志
+          git log --pretty=format:%B \${{ env.commitS }} -1 | sed -e "s# {2,}#\n#g" -e "/^Merge \(pull\Vert{}branch\Vert{}remote\)/d" -e '/^/d' | cat -n | cut -f2- >> apk/{{ matrix.userName }}-Release.log
           
           echo -e '\n```' >> apk/${{ matrix.userName }}-Release.log
       - name: Upload App To Artifact
